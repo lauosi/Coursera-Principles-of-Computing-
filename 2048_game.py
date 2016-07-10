@@ -73,8 +73,9 @@ class TwentyFortyEight:
     """
 
     def __init__(self, grid_height, grid_width):
-        self.grid_height = grid_height
-        self.grid_width = grid_width
+        self._grid_height = grid_height
+        self._grid_width = grid_width
+        self.get_directions()
         # create grid
         self.reset()
         
@@ -85,40 +86,73 @@ class TwentyFortyEight:
         initial tiles.
         """
         # create empty grid
-        self.grid = [[0 for col in range(self.grid_width)]
-                   for row in range(self.grid_height)]
+        self._grid = [[0 for dummy_col in range(self.get_grid_width())]
+                   for dummy_row in range(self.get_grid_height())]
         
         # add two initial tiles
         self.new_tile()
         self.new_tile()
+         
+    def get_directions(self):
+        """
+        Return a dictionary with directions for a move method.
+        """
+        self._directions = {}
+        self._directions[UP] = [(0, num) for num in range(self.get_grid_width())]
+        self._directions[DOWN] = [(self.get_grid_height()-1, num) for num in range(self.get_grid_width())]
+        self._directions[LEFT] = [(num, 0) for num in range(self.get_grid_height())]
+        self._directions[RIGHT] = [(num, self.get_grid_width()-1) for num in range(self.get_grid_height())]
         
-        return self.grid
+        return self._directions
         
     def __str__(self):
         """
         Return a string representation of the grid for debugging.
         """
         
-        return str(self.grid)
+        return str(self._grid)
 
     def get_grid_height(self):
         """
         Get the height of the board.
         """
-        return self.grid_height
+        return self._grid_height
 
     def get_grid_width(self):
         """
         Get the width of the board.
         """
-        return self.grid_width
+        return self._grid_width
 
     def move(self, direction):
         """
         Move all tiles in the given direction and add
         a new tile if any tiles moved.
         """
-        pass
+        correct_move = False
+        
+        if direction == UP or direction == DOWN:
+            num_tiles = self.get_grid_height()  
+        elif direction == LEFT or direction == RIGHT:
+            num_tiles = self.get_grid_width()
+        
+        initial_tiles = self._directions[direction]
+        for tile in initial_tiles:
+            temp = []
+            for num in range(num_tiles):
+                row = tile[0] + num * OFFSETS[direction][0]
+                col = tile[1] + num * OFFSETS[direction][1]
+                temp.append(self._grid[row][col])
+                
+            merged = merge(temp)
+            for num in range(num_tiles):
+                row = tile[0] + num * OFFSETS[direction][0]
+                col = tile[1] + num * OFFSETS[direction][1]
+                if self._grid[row][col] != merged[num]:
+                    correct_move = True
+                self._grid[row][col] = merged[num]
+        if correct_move:
+            self.new_tile()
     
     def new_tile(self):
         """
@@ -127,30 +161,31 @@ class TwentyFortyEight:
         4 10% of the time.
         """
         while True:
-            # select square
-            col = random.randrange(self.get_grid_width())
-            row = random.randrange(self.get_grid_height())
-            # keep looking for an empty square
-            # break the loop while is found
-            if self.grid[row][col] == 0:
-                # for 90% cases set number 2, for 10% set number 4
-                if random.random() >= 0.1:
-                    self.grid[row][col] = 2
-                else:
-                    self.grid[row][col] = 4
-                break
+                # select square
+                col = random.randrange(self.get_grid_width())
+                row = random.randrange(self.get_grid_height())
+                # keep looking for an empty square
+                # break the loop while is found
+
+                if self._grid[row][col] == 0:
+                    # for 90% cases set number 2, for 10% set number 4
+                    if random.random() >= 0.1:
+                        self._grid[row][col] = 2
+                    else:
+                        self._grid[row][col] = 4
+                    break
 
     def set_tile(self, row, col, value):
         """
         Set the tile at position row, col to have the given value.
         """
-        self.grid[row][col] = value
+        self._grid[row][col] = value
 
     def get_tile(self, row, col):
         """
         Return the value of the tile at position row, col.
         """
-        return self.grid[row][col]
+        return self._grid[row][col]
 
-game = TwentyFortyEight(4, 4)
-poc_2048_gui.run_gui(game)
+#poc_2048_gui.run_gui(TwentyFortyEight(3, 3))
+
